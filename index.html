@@ -2,7 +2,7 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Özel Eğitim Flashcards - Pro</title>
+    <title>Sanat ve Müzik Flashcards - Pro</title>
     <style>
         :root { --primary: #6366f1; --accent: #f472b6; }
         body { 
@@ -40,7 +40,7 @@
 </head>
 <body>
 
-<div class="counter" id="counter">Kart 1 / 10</div>
+<div class="counter" id="counter">Kart 1 / 20</div>
 
 <div class="card-container" id="card-wrapper" onclick="flipCard()">
     <div class="card" id="card">
@@ -64,16 +64,26 @@
 
 <script>
     const flashcards = [
-        {"front": "Özel Eğitim Değerlendirme Kurulu'nda kimler yer alır?", "back": "Müdür yardımcısı, öğretmenler, fizyoterapist ve veli."},
-        {"front": "18 yaş altı bireyler için düzenlenen raporun adı nedir?", "back": "ÇÖZGER (Çocuklar İçin Özel Gereksinim Raporu)."},
-        {"front": "Haftalık rehabilitasyon desteği en fazla kaç saattir?", "back": "Öğrencinin durumuna göre haftalık en fazla 3 saattir."},
-        {"front": "RAM okul yerleştirme kararları kaç yılda bir yenilenir?", "back": "Her 4 yılda bir, okul kademesi bitiminde yenilenir."},
-        {"front": "Kaynaştırma eğitimi kararı hangi kriterle alınır?", "back": "Öğrencinin normal sınıfta eğitim görebileceği öngörüldüğünde."},
-        {"front": "BEP (Bireysel Eğitim Programı) temel amacı nedir?", "back": "Öğrenciye özel akademik amaçlar ve teknikler belirlemek."},
-        {"front": "Özel alt sınıfların öğretmen ve öğrenci kapasitesi nedir?", "back": "8-10 öğrenci kapasiteli ve iki özel eğitim öğretmenlidir."},
-        {"front": "Bilsem seçmelerinde kullanılan yerli zeka ölçeği nedir?", "back": "TÜZÖ (Türk Zeka Ölçeği)."},
-        {"front": "Okulun öğrenciyi RAM'a sevk etmek için doldurduğu form nedir?", "back": "Eğitsel Değerlendirme Formu."},
-        {"front": "RAM kurumlarının temel işlevi nedir?", "back": "Özel gereksinimli bireyleri tanılama, izleme ve yerleştirme."}
+        {"front": "Sanatın kazanılması için gereken temel unsurlar nelerdir?", "back": "Emek, gayret, sabır ve uzun süreli bir eğitim gereklidir."},
+        {"front": "Bayram Hoca'ya göre öğretmenlik mesleği nasıl tanımlanır?", "back": "Öğretmenlik, uzun sürede elde edilebilecek bir sanattır."},
+        {"front": "Metne göre bir sanatçının eğitimindeki en önemli rehber kimdir?", "back": "Bir hoca veya üstat kontrolü şarttır."},
+        {"front": "Öğrencilerin 'ney' öğrenme konusundaki yanılgısı nedir?", "back": "Üç gün gibi kısa sürede öğrenebileceklerini sanmalarıdır."},
+        {"front": "Müzik eğitiminde enstrümandan önce kontrol edilmesi gereken nedir?", "back": "Bireyin ritim duygusunun kontrol edilmesidir."},
+        {"front": "Metinde geçen 'Hüdayi nâbit' kavramı neyi ifade eder?", "back": "Doğuştan gelen, kendiliğinden oluşan yeteneği ifade eder."},
+        {"front": "Erken yaşta sanat eğitimine başlamanın avantajı nedir?", "back": "Daha ileri seviyelere ve uzmanlığa ulaşmayı sağlar."},
+        {"front": "Mustafa'ya göre enstrüman çalmanın kişiye en büyük katkısı nedir?", "back": "Sabretmeyi öğretmesidir."},
+        {"front": "Bir akademisyenin çok yönlü olmasının kanıtı olarak ne gösterilmiştir?", "back": "Atölyesinde yirmi sekizden fazla sanatla uğraşması."},
+        {"front": "Sanat eğitimi ve akademik başarı arasındaki ilişki nasıldır?", "back": "Disiplin ve sabır katsa da çok zaman aldığı için denge zordur."},
+        {"front": "Mustafa neden tek bir enstrüman (Kanun) üzerine yoğunlaşmıştır?", "back": "Babasının 'bir enstrüman bir ömürdür' tavsiyesi üzerine."},
+        {"front": "Metinde ritim duygusunun eksikliğine verilen örnek hangisidir?", "back": "On beş dil bilen bir hocanın basit bir ritmi tutamaması."},
+        {"front": "Enstrüman çalışırken gelişim nasıl takip edilmelidir?", "back": "Düzenli kayıtlar alarak ve zaman içindeki farkı dinleyerek."},
+        {"front": "Müzik eğitiminde 'usül' ne anlama gelmektedir?", "back": "Müzikteki ritim ve zamanlama yapısını ifade eder."},
+        {"front": "Bayram Hoca toplamda kaç enstrümanın öğretimini yapmıştır?", "back": "Otuzdan fazla Türk müziği sazının öğretimini yapmıştır."},
+        {"front": "Enstrümanın 'öğretmen' olarak tanımlanmasının sebebi nedir?", "back": "İstenildiği an makam ve sesleri pratik etme imkanı sunması."},
+        {"front": "Sanatın toplumsal ve evrensel yönü metinde nasıl ele alınır?", "back": "Ahlak, estetik ve evrensellik çerçevesinde incelenir."},
+        {"front": "Mustafa'nın müzik serüveni hangi yaşta ve hangi aletle başlamıştır?", "back": "Beş yaşında tef (ritim) ile başlamıştır."},
+        {"front": "Metne göre sanat eğitiminde ailenin rolü nedir?", "back": "Çocuğun ilgisini desteklemeli ama zorlamamalıdır."},
+        {"front": "Sanatçı olmak için sadece istemek yeterli midir?", "back": "Hayır, yetenekle beraber uzun süreli disiplinli çalışma gerekir."}
     ];
 
     let currentIndex = 0;
