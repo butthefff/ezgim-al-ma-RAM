@@ -2,130 +2,391 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Eğitim Bilimleri Flashcards - Pro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monitör Karşılaştırma ve Analiz</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        :root { --primary: #6366f1; --accent: #f472b6; }
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
+        
         body { 
-            font-family: 'Segoe UI', sans-serif; display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; height: 100vh; background: radial-gradient(circle, #312e81, #0f172a); 
-            margin: 0; color: #fff;
+            font-family: 'Inter', sans-serif; 
+            background-color: #050505; /* Çok koyu gri, neredeyse siyah */
+            color: #e5e5e5;
+            -webkit-font-smoothing: antialiased;
         }
-        .counter { margin-bottom: 10px; font-weight: bold; color: #a5b4fc; }
         
-        /* Kartın kendisi ve geçiş efekti */
-        .card-container { perspective: 1000px; width: 420px; height: 280px; cursor: pointer; margin-bottom: 30px; transition: opacity 0.3s ease; }
-        .card { width: 100%; height: 100%; transition: transform 0.6s; transform-style: preserve-3d; position: relative; }
-        .card.flipped { transform: rotateY(180deg); }
-        .front, .back { 
-            position: absolute; width: 100%; height: 100%; backface-visibility: hidden; 
-            display: flex; flex-direction: column; align-items: center; justify-content: center; 
-            padding: 30px; box-sizing: border-box; border-radius: 25px; box-shadow: 0 10px 25px rgba(0,0,0,0.3); 
-            text-align: center;
+        h1, h2, h3, .elegant-title {
+            font-family: 'Playfair Display', serif;
         }
-        .front { background: #fff; color: #312e81; border: 5px solid var(--primary); }
-        .back { transform: rotateY(180deg); background: #eef2ff; color: #4338ca; border: 5px solid var(--accent); }
-        
-        .status-badge { margin-top: 15px; padding: 5px 15px; border-radius: 20px; font-size: 0.8rem; font-weight: bold; display: none; }
-        .known { background: #059669; color: white; display: inline-block; }
-        .repeat { background: #e11d48; color: white; display: inline-block; }
-        .click-hint { font-size: 0.8rem; color: #94a3b8; margin-top: 10px; }
 
-        .controls { display: flex; gap: 15px; align-items: center; }
-        button { 
-            padding: 12px 25px; cursor: pointer; border: none; border-radius: 30px; 
-            background: var(--primary); color: white; font-weight: bold; transition: 0.2s;
+        .chart-container { 
+            position: relative; 
+            width: 100%; 
+            max-width: 800px; 
+            margin-left: auto; 
+            margin-right: auto; 
+            height: 350px; 
+            max-height: 400px; 
         }
-        button:disabled { background: #475569; cursor: not-allowed; opacity: 0.5; }
+        
+        .custom-shadow { 
+            box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.9), 0 0 1px 1px rgba(255, 255, 255, 0.03); 
+        }
+        
+        .best-badge { 
+            background: linear-gradient(135deg, #111 0%, #000 100%); 
+            border: 1px solid #333;
+            color: #fff;
+        }
+        
+        .pp-badge { 
+            background: linear-gradient(135deg, #222 0%, #111 100%); 
+            border: 1px solid #444;
+            color: #eee;
+        }
+
+        .glass-panel {
+            background: rgba(15, 15, 15, 0.8);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        
+        .link-button {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: #fff;
+            color: #000;
+            border: 1px solid #fff;
+        }
+        .link-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 20px rgba(255,255,255,0.15);
+            background-color: transparent;
+            color: #fff;
+        }
+
+        .secondary-link-button {
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            background-color: transparent;
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .secondary-link-button:hover {
+            transform: translateY(-3px);
+            border-color: #fff;
+            box-shadow: 0 10px 20px rgba(255,255,255,0.05);
+            background-color: rgba(255,255,255,0.05);
+        }
+        
+        th { border-bottom-color: rgba(255,255,255,0.08) !important; }
+        td { border-bottom-color: rgba(255,255,255,0.03) !important; }
+        tr:hover td { background-color: rgba(255,255,255,0.015); }
+
+        /* Zarif kaydırma çubuğu */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #0a0a0a; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #555; }
     </style>
 </head>
-<body>
+<body class="selection:bg-white selection:text-black">
 
-<div class="counter" id="counter">Kart 1 / 20</div>
-
-<div class="card-container" id="card-wrapper" onclick="flipCard()">
-    <div class="card" id="card">
-        <div class="front" id="front">
-            <span id="front-text">Soru</span>
-            <div class="click-hint">(Cevabı görmek için tıkla)</div>
+    <nav class="glass-panel sticky top-0 z-50 border-b border-[#1f1f1f]">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-20 items-center">
+                <div class="flex items-center gap-2">
+                    <span class="text-2xl font-bold elegant-title tracking-wider text-white">MONITOR<span class="font-light text-gray-400">EXPERT</span></span>
+                </div>
+                <div class="hidden md:flex space-x-10">
+                    <button onclick="scrollToSection('analysis')" class="text-xs tracking-[0.2em] uppercase text-gray-400 hover:text-white transition duration-300">Analiz</button>
+                    <button onclick="scrollToSection('comparison')" class="text-xs tracking-[0.2em] uppercase text-gray-400 hover:text-white transition duration-300">Kıyaslama</button>
+                    <button onclick="scrollToSection('recommendation')" class="text-xs tracking-[0.2em] uppercase text-gray-400 hover:text-white transition duration-300">Seçimimiz</button>
+                    <button onclick="scrollToSection('links')" class="text-xs tracking-[0.2em] uppercase text-gray-400 hover:text-white transition duration-300">Satın Al</button>
+                </div>
+            </div>
         </div>
-        <div class="back" id="back">
-            <span id="back-text">Cevap</span>
-            <div id="status-badge" class="status-badge"></div>
+    </nav>
+
+    <header class="max-w-7xl mx-auto px-4 py-32 text-center relative">
+        <div class="absolute inset-0 flex items-center justify-center opacity-[0.02] pointer-events-none z-0">
+            <h1 class="text-[20vw] font-bold elegant-title whitespace-nowrap">VISION</h1>
         </div>
-    </div>
-</div>
+        <div class="relative z-10">
+            <h1 class="text-6xl md:text-8xl font-bold text-white mb-8 tracking-tighter">Mükemmeli Keşfedin.</h1>
+            <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto font-light leading-relaxed">
+                Teknoloji ve estetiğin buluştuğu noktada, sizin için en doğru ekranı seçmek adına <span class="text-white font-medium">7 farklı modeli</span> derinlemesine inceledik.
+            </p>
+        </div>
+    </header>
 
-<div class="controls">
-    <button id="prevBtn" onclick="prevCard()">←</button>
-    <button onclick="markAsRepeat()" style="background: #e11d48;">Tekrar</button>
-    <button onclick="markAsKnown()" style="background: #059669;">Anladım</button>
-    <button id="nextBtn" onclick="nextCard()">→</button>
-</div>
+    <section id="analysis" class="max-w-7xl mx-auto px-4 py-20 border-t border-white/5">
+        <div class="glass-panel rounded-3xl p-10 custom-shadow">
+            <h2 class="text-4xl font-bold mb-6 text-white tracking-tight">Performans ve Değer</h2>
+            <p class="mb-12 text-gray-400 font-light text-lg leading-relaxed max-w-4xl">
+                Yenileme hızı (Hz) ve fiyat arasındaki ince dengeyi görselleştiriyoruz. Monitörlerin konumlandırması, performansın maliyetini analiz ederek en akılcı yatırımı yapmanızı sağlar.
+            </p>
+            <div class="chart-container">
+                <canvas id="priceHzChart"></canvas>
+            </div>
+        </div>
+    </section>
 
-<script>
-    const flashcards = [
-        {"front": "Eskilerin ilim uğruna yaptıkları meşakkatli yolculukları ifade eden kavram nedir?", "back": "Rihle"},
-        {"front": "Talim ve Terbiye Kurulu Başkanlığı bünyesinde kaç adet Daire Başkanı vardır?", "back": "7 Adet"},
-        {"front": "Tûbâ Ağacı Nazariyesi'ne göre eğitim nasıl bir yol izlemelidir?", "back": "Yukarıdan aşağıya (elitist/merkeziyetçi)"},
-        {"front": "Kiraz Ağacı Nazariyesi'ni savunan ünlü eğitimci kimdir?", "back": "Satı Bey"},
-        {"front": "Emrullah Efendi'nin maarif hakkındaki meşhur ironik sözü neyi ifade eder?", "back": "Eğitim yönetiminin ve bürokrasinin dinamik zorluklarını"},
-        {"front": "İdeal insanın 'Aklı Selim' sütunu neyi temsil eder?", "back": "Doğru muhakeme kurabilen zihinsel olgunluk"},
-        {"front": "'Kalbi Selim' boyutu eğitimin hangi yönüyle ilişkilidir?", "back": "Vicdani derinlik ve manevi değerler (his boyutu)"},
-        {"front": "Kültür, sanat ve estetik yetkinliğini ifade eden kavram hangisidir?", "back": "Zevki Selim"},
-        {"front": "Öğretmenlikteki 'Arkeolog Metaforu' neyi vurgular?", "back": "Öğrencinin içindeki potansiyeli sabırla gün yüzüne çıkarmayı"},
-        {"front": "Alexis Carrel'in 'İnsan Bu Meçhul' eseri öğretmenlikte neden vurgulanmıştır?", "back": "İnsanın karmaşık ve bilinmeyen yönlerinin çokluğunu belirtmek için"},
-        {"front": "'Her öğrenci ayrı bir ülkeye benzer' metaforu neyi anlatır?", "back": "Her öğrencinin kendine has sınırları ve bireysel farklılıkları olduğunu"},
-        {"front": "Öğretmenlikte en büyük hata olarak nitelendirilen durum nedir?", "back": "Velilerin duyduğu sonsuz güveni ve emaneti zedelemek"},
-        {"front": "Metindeki 'okul maçı anısı' öğretmenin hangi özelliğine örnektir?", "back": "İnisiyatif alma ve öğrenciyle güven bağı kurma"},
-        {"front": "Sayısal branş öğretmenlerinin değerler eğitimindeki rolü nedir?", "back": "Değer kazandırma sürecinin ortak yürütücüsü olmak"},
-        {"front": "Eğitimin nihai gayesi akademik donanımdan ziyade nedir?", "back": "Kişiliği bütünsel olarak inşa etmek"},
-        {"front": "Tahtada x+y=10 denklemini öğreten bir öğretmen başka neyi işlemelidir?", "back": "Doğruluğu, dürüstlüğü ve iyi insan olmayı"},
-        {"front": "TTKB stratejilerini ve ders kitaplarını nihai karara bağlayan ekip kaç kişidir?", "back": "10 Kişi (Kurul Üyeleri)"},
-        {"front": "Kitap veya yardımcı kaynakları inceleyen ekiplerin yapısı nasıldır?", "back": "Ortalama 20 alan uzmanından oluşan dinamik kadrolar"},
-        {"front": "Eğitimde branş ayrımının pedagojik sorumluluğu sınırlamaması ne demektir?", "back": "Her branşın ahlaki ve kültürel gelişimden sorumlu olması"},
-        {"front": "Mehmet Yengir Gülü'nün öğretmenlere yönelik temel mesajı nedir?", "back": "Öğretmenliğin insan ruhuna dokunan hassas bir zanaat olduğu"}
-    ];
+    <section id="comparison" class="max-w-7xl mx-auto px-4 py-24">
+        <div class="mb-14 text-center">
+            <h2 class="text-4xl font-bold text-white mb-4 tracking-tight">Teknik Özellikler Matrisi</h2>
+            <p class="text-xl text-gray-400 font-light">Tüm detayları şeffaf bir şekilde karşılaştırın.</p>
+        </div>
 
-    let currentIndex = 0;
-    let cardStatus = new Array(flashcards.length).fill(null);
+        <div class="overflow-x-auto glass-panel rounded-3xl custom-shadow border border-white/5">
+            <table class="w-full text-left border-collapse">
+                <thead class="bg-black/80 text-gray-300 font-medium text-xs tracking-widest uppercase">
+                    <tr>
+                        <th class="px-8 py-6 border-b border-[#222]">Model</th>
+                        <th class="px-8 py-6 border-b border-[#222]">Panel / Boyut</th>
+                        <th class="px-8 py-6 border-b border-[#222]">Çözünürlük</th>
+                        <th class="px-8 py-6 border-b border-[#222]">Hız (Hz/ms)</th>
+                        <th class="px-8 py-6 border-b border-[#222] text-right">Fiyat</th>
+                    </tr>
+                </thead>
+                <tbody id="monitorTableBody" class="text-gray-400 font-light text-sm">
+                    <!-- JS ile doldurulacak -->
+                </tbody>
+            </table>
+        </div>
+    </section>
 
-    function updateCard() {
-        const wrapper = document.getElementById('card-wrapper');
-        wrapper.style.opacity = 0; // Efekt için şeffaflaştır
+    <section id="recommendation" class="max-w-7xl mx-auto px-4 py-24 border-t border-white/5">
+        <div class="mb-14 text-center">
+            <h2 class="text-4xl font-bold text-white mb-4 tracking-tight">Uzman Seçimlerimiz</h2>
+            <p class="text-xl text-gray-400 font-light">İhtiyacınıza yönelik en rasyonel tercihler.</p>
+        </div>
 
-        setTimeout(() => {
-            document.getElementById('front-text').innerText = flashcards[currentIndex].front;
-            document.getElementById('back-text').innerText = flashcards[currentIndex].back;
-            document.getElementById('counter').innerText = `Kart ${currentIndex + 1} / ${flashcards.length}`;
-            
-            const badge = document.getElementById('status-badge');
-            badge.className = 'status-badge';
-            if (cardStatus[currentIndex] === 'known') { badge.innerText = "✅ Anlaşıldı"; badge.classList.add('known'); } 
-            else if (cardStatus[currentIndex] === 'repeat') { badge.innerText = "🔄 Tekrar Edilecek"; badge.classList.add('repeat'); }
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+            <!-- Best Overall -->
+            <div class="glass-panel rounded-3xl p-12 relative custom-shadow overflow-hidden group hover:border-gray-600 transition-colors duration-500 flex flex-col justify-between">
+                <div>
+                    <div class="absolute top-0 right-0 best-badge px-6 py-3 rounded-bl-2xl text-[10px] tracking-[0.3em] font-semibold uppercase">En İyi Seçim</div>
+                    <h3 class="text-3xl font-bold text-white mb-3 mt-4">SAMSUNG Odyssey G5</h3>
+                    <p class="text-sm text-gray-500 mb-8 font-mono tracking-wider">LS27CG552EUXUF - 27" 2K 165Hz VA</p>
+                    <p class="text-gray-300 font-light text-lg leading-relaxed mb-8">
+                        Keskin görüntü kalitesi ve derin siyahları ile "bir kere alayım en iyisi olsun" diyenler için mükemmel yatırım. 2K çözünürlüğün netliği bu fiyat bandında vazgeçilmezdir.
+                    </p>
+                </div>
+                <a href="https://www.mediamarkt.com.tr/tr/product/_samsung-odyssey-g5-g55c-ls27cg552euxuf-curved-va-27-inc-qhd-1-ms-ms-gaming-monitor-siyah-162231821.html" target="_blank" rel="noopener noreferrer" class="link-button w-full text-center py-4 px-8 rounded-xl font-medium text-xs tracking-widest uppercase mt-4 block">Satın Al - 8.999 ₺</a>
+            </div>
 
-            document.getElementById('card').classList.remove('flipped');
-            document.getElementById('prevBtn').disabled = (currentIndex === 0);
-            document.getElementById('nextBtn').disabled = (currentIndex === flashcards.length - 1);
-            
-            wrapper.style.opacity = 1; // Tekrar görünür yap
-        }, 300);
-    }
+            <!-- Best Value -->
+            <div class="glass-panel rounded-3xl p-12 relative custom-shadow overflow-hidden group hover:border-gray-600 transition-colors duration-500 flex flex-col justify-between">
+                <div>
+                    <div class="absolute top-0 right-0 pp-badge px-6 py-3 rounded-bl-2xl text-[10px] tracking-[0.3em] font-semibold uppercase">Fiyat / Performans</div>
+                    <h3 class="text-3xl font-bold text-white mb-3 mt-4">MSI G255PF E2</h3>
+                    <p class="text-sm text-gray-500 mb-8 font-mono tracking-wider">24.5" FHD Rapid IPS 180HZ 1MS</p>
+                    <p class="text-gray-300 font-light text-lg leading-relaxed mb-8">
+                        Uygun fiyatına rağmen nadir bulunan Rapid IPS panel. Canlı renkler, rekabetçi oyunlar için ideal 180Hz hız ve Pivot özelliği ile kesinlikle bütçe dostu şampiyon.
+                    </p>
+                </div>
+                <a href="https://www.mediamarkt.com.tr/tr/product/_msi-g255pf-e2-245-inc-1-ms-180-hz-fhd-rapid-ips-monitor-1243378.html" target="_blank" rel="noopener noreferrer" class="secondary-link-button w-full text-center py-4 px-8 rounded-xl font-medium text-xs tracking-widest uppercase mt-4 block">Satın Al - 5.499 ₺</a>
+            </div>
+        </div>
+    </section>
 
-    function flipCard() { document.getElementById('card').classList.toggle('flipped'); }
-    function nextCard() { if(currentIndex < flashcards.length - 1) { currentIndex++; updateCard(); } }
-    function prevCard() { if(currentIndex > 0) { currentIndex--; updateCard(); } }
-    
-    function markAsKnown() { 
-        cardStatus[currentIndex] = 'known';
-        updateCard();
-        setTimeout(nextCard, 500); // Anladım deyince kısa gecikmeyle sonraki karta geç
-    }
-    function markAsRepeat() { 
-        cardStatus[currentIndex] = 'repeat';
-        updateCard();
-    }
+    <section id="links" class="max-w-7xl mx-auto px-4 py-24 mb-20 border-t border-white/5">
+        <div class="mb-14 text-center">
+            <h2 class="text-4xl font-bold text-white mb-4 tracking-tight">Koleksiyon</h2>
+            <p class="text-xl text-gray-400 font-light">Tüm modellerin resmi satış bağlantıları.</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="linksContainer">
+            <!-- JS ile doldurulacak -->
+        </div>
+    </section>
 
-    updateCard();
-</script>
+    <footer class="border-t border-[#1f1f1f] py-12 mt-10">
+        <div class="max-w-7xl mx-auto px-4 text-center flex flex-col items-center">
+             <span class="text-xl font-bold elegant-title tracking-wider text-white mb-4 opacity-50">MONITOREXPERT</span>
+            <p class="text-gray-600 font-light text-sm tracking-wide">
+                &copy; 2026 MonitorExpert. Tüm estetik ve rasyonel hakları saklıdır.<br>Fiyatlar perakendeciye göre değişiklik gösterebilir.
+            </p>
+        </div>
+    </footer>
+
+    <script>
+        // Veri Seti (Lenovo eklendi)
+        const monitors = [
+            { 
+                name: 'MSI 24.5" G255PF E2', 
+                size: '24.5" Flat', 
+                panel: 'Rapid IPS', 
+                res: 'FHD (1080p)', 
+                hz: 180, 
+                ms: 1, 
+                price: 5499,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_msi-g255pf-e2-245-inc-1-ms-180-hz-fhd-rapid-ips-monitor-1243378.html'
+            },
+            { 
+                name: 'SAMSUNG Essential S3', 
+                size: '27" Curved', 
+                panel: 'VA', 
+                res: 'FHD (1080p)', 
+                hz: 100, 
+                ms: 4, 
+                price: 5299,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_samsung-essential-s3-ls27d366gauxuf-full-hd-curved-led-27-inc-ufhd-4-ms-100-hz-monitor-siyah-164558974.html'
+            },
+            { 
+                name: 'SAMSUNG Odyssey G5', 
+                size: '27" Curved', 
+                panel: 'VA', 
+                res: 'WQHD (1440p)', 
+                hz: 165, 
+                ms: 1, 
+                price: 8999,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_samsung-odyssey-g5-g55c-ls27cg552euxuf-curved-va-27-inc-qhd-1-ms-ms-gaming-monitor-siyah-162231821.html'
+            },
+            { 
+                name: 'RAMPAGE Drop DR27C300F', 
+                size: '27" Curved', 
+                panel: 'Fast VA', 
+                res: 'FHD (1080p)', 
+                hz: 300, 
+                ms: 1, 
+                price: 7999,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_rampage-drop-dr27c300f-27-300hz-1ms-fast-va-fhd-freesyncgsync-rgb-pivot-r1500-curved-oyuncu-monitor-1249610.html'
+            },
+            { 
+                name: 'KOORUI 27E6QCA', 
+                size: '27" Curved', 
+                panel: 'VA', 
+                res: 'QHD (1440p)', 
+                hz: 180, 
+                ms: 1, 
+                price: 8799,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_koorui-27e6qca-va-curved-27-inc-qhd-1-ms-180-hz-gaming-monitor-siyah-173003377.html'
+            },
+            { 
+                name: 'GSKILL NPC MD270K-V', 
+                size: '27" Curved', 
+                panel: 'VA', 
+                res: 'FHD (1080p)', 
+                hz: 180, 
+                ms: 1, 
+                price: 5999,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_gskill-npc-md270k-v-180hz-1ms-va-fhd-curved-lcd-27-inc-full-hd-1-ms-gaming-monitor-siyah-168990898.html'
+            },
+            { 
+                name: 'LENOVO L27-4C', 
+                size: '27" Flat', 
+                panel: 'IPS', 
+                res: 'FHD (1080p)', 
+                hz: 144, 
+                ms: 1, 
+                price: 7999,
+                link: 'https://www.mediamarkt.com.tr/tr/product/_lenovo-l27-4c-27-inc-1-ms-144-hz-full-hd-ips-monitor-67dekac1tk-1254960.html'
+            }
+        ];
+
+        // Sayfa İçi Kaydırma
+        function scrollToSection(id) {
+            const element = document.getElementById(id);
+            const y = element.getBoundingClientRect().top + window.scrollY - 100;
+            window.scrollTo({top: y, behavior: 'smooth'});
+        }
+
+        const tbody = document.getElementById('monitorTableBody');
+        monitors.forEach((m, index) => {
+            let rowClass = index % 2 === 0 ? 'bg-[#0a0a0a]' : 'bg-transparent';
+            tbody.innerHTML += `
+                <tr class="transition-colors ${rowClass}">
+                    <td class="px-8 py-5 border-b font-medium text-white">${m.name}</td>
+                    <td class="px-8 py-5 border-b"><span class="${m.panel.includes('IPS') ? 'text-white font-medium' : ''}">${m.panel}</span> <span class="text-gray-500 text-xs ml-1">${m.size}</span></td>
+                    <td class="px-8 py-5 border-b ${m.res.includes('1440p') ? 'text-white font-medium' : ''}">${m.res}</td>
+                    <td class="px-8 py-5 border-b">${m.hz}Hz <span class="text-gray-500 text-xs mx-1">/</span> ${m.ms}ms</td>
+                    <td class="px-8 py-5 border-b text-right font-mono text-gray-300">₺${m.price.toLocaleString('tr-TR')}</td>
+                </tr>
+            `;
+        });
+
+        const linksContainer = document.getElementById('linksContainer');
+        monitors.forEach(m => {
+            linksContainer.innerHTML += `
+                <a href="${m.link}" target="_blank" rel="noopener noreferrer" class="glass-panel p-8 rounded-2xl flex flex-col justify-between border border-white/5 hover:border-white/30 transition-all duration-500 group cursor-pointer h-full relative overflow-hidden">
+                    <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
+                    <div class="relative z-10">
+                        <h4 class="text-xl font-bold text-white mb-2 group-hover:text-gray-200">${m.name}</h4>
+                        <div class="flex flex-wrap gap-2 mb-6">
+                            <span class="text-[10px] tracking-wider uppercase border border-white/10 px-2 py-1 rounded text-gray-400">${m.res.split(' ')[0]}</span>
+                            <span class="text-[10px] tracking-wider uppercase border border-white/10 px-2 py-1 rounded text-gray-400">${m.hz}Hz</span>
+                            <span class="text-[10px] tracking-wider uppercase border border-white/10 px-2 py-1 rounded text-gray-400">${m.panel}</span>
+                        </div>
+                    </div>
+                    <div class="flex justify-between items-end mt-4 pt-6 border-t border-white/10 relative z-10">
+                        <span class="text-2xl font-light font-mono text-white">₺${m.price.toLocaleString('tr-TR')}</span>
+                        <span class="text-[10px] font-bold tracking-[0.2em] uppercase text-gray-500 group-hover:text-white transition-colors">
+                            Satın Al →
+                        </span>
+                    </div>
+                </a>
+            `;
+        });
+
+        const ctx = document.getElementById('priceHzChart').getContext('2d');
+        
+        Chart.defaults.color = '#6b7280';
+        Chart.defaults.font.family = "'Inter', sans-serif";
+
+        new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Monitörler (Fiyat / Hz)',
+                    data: monitors.map(m => ({ x: m.price, y: m.hz, name: m.name })),
+                    backgroundColor: '#ffffff',
+                    borderColor: 'rgba(255, 255, 255, 0.2)',
+                    borderWidth: 2,
+                    pointRadius: 6,
+                    pointHoverRadius: 9,
+                    pointHoverBackgroundColor: '#000',
+                    pointHoverBorderColor: '#fff',
+                    pointHoverBorderWidth: 3
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(0, 0, 0, 0.9)',
+                        titleColor: '#fff',
+                        bodyColor: '#ccc',
+                        titleFont: { size: 14, family: "'Inter', sans-serif", weight: '600' },
+                        padding: 12,
+                        borderColor: 'rgba(255,255,255,0.1)',
+                        borderWidth: 1,
+                        displayColors: false,
+                        callbacks: {
+                            label: function(context) {
+                                const data = context.raw;
+                                return `${data.name}: ₺${data.x} - ${data.y}Hz`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Fiyat (₺)', color: '#888', font: { size: 12, tracking: 1 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false }
+                    },
+                    y: {
+                        title: { display: true, text: 'Yenileme Hızı (Hz)', color: '#888', font: { size: 12, tracking: 1 } },
+                        grid: { color: 'rgba(255, 255, 255, 0.05)', drawBorder: false },
+                        beginAtZero: false,
+                        min: 60
+                    }
+                }
+            }
+        });
+    </script>
 </body>
 </html>
